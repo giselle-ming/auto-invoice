@@ -44,104 +44,186 @@ form.addEventListener("submit", async (event) => {
   }
 });
 
+const CATEGORIES = [
+  "Select category",
+  "Food",
+  "Entertainment",
+  "Gifts",
+  "Going out",
+  "Hobbies",
+  "Housing",
+  "Meal",
+  "Medical",
+  "Parents",
+  "Personal care",
+  "Travel",
+];
+
+let itemsByCategory = {};
+
 function displayInvoiceData(data) {
+  const responseDiv = document.getElementById("response");
   responseDiv.innerHTML = "<h2>Processed Invoice/Receipt Data</h2>";
 
+  // Vendor info
   if (data.vendor) {
     responseDiv.innerHTML += `
       <div class="invoice-details">
-        <p><strong>Vendor:</strong> ${data.vendor.raw_name} 
-        <button class="btn-copy" onclick="copyToClipboard('${data.vendor.raw_name}')">📋</button></p>
+        <p><strong>Vendor:</strong> ${data.vendor.raw_name}</p>
       </div>`;
-  }
-  if (data.vendor && data.vendor.logo) {
-    responseDiv.innerHTML += `
-      <div class="invoice-details">
-        <img src="${data.vendor.logo}" alt="Vendor Logo" style="max-width: 100%; height: auto; border: 1px solid #ccc; border-radius: 4px;" />
-      </div>`;
-  }
-  if (data.invoice_number) {
-    responseDiv.innerHTML += `
-      <p><strong>Invoice Number:</strong> ${data.invoice_number} 
-      <button class="btn-copy" onclick="copyToClipboard('${data.invoice_number}')">📋</button></p>`;
-  }
-  if (data.category) {
-    responseDiv.innerHTML += `
-      <p><strong>Category:</strong> ${data.category} 
-      <button class="btn-copy" onclick="copyToClipboard('${data.category}')">📋</button></p>`;
-  }
-  if (data.date) {
-    responseDiv.innerHTML += `
-      <p><strong>Date:</strong> ${data.date} 
-      <button class="btn-copy" onclick="copyToClipboard('${data.date}')">📋</button></p>`;
-  }
-  if (data.currency) {
-    responseDiv.innerHTML += `
-      <p><strong>Currency:</strong> ${data.currency} 
-      <button class="btn-copy" onclick="copyToClipboard('${data.currency}')">📋</button></p>`;
-  }
-
-  if (
-    data.line_items &&
-    Array.isArray(data.line_items) &&
-    data.line_items.length > 0
-  ) {
-    responseDiv.innerHTML += '<h3 class="line-items-title">Line Items</h3>';
-    data.line_items.forEach((item) => {
-      if (item.description) {
-        responseDiv.innerHTML += `
-          <p><strong>Description:</strong> ${item.description}`;
-      }
-      if (item.total) {
-        responseDiv.innerHTML += `
-          <p><strong>Total:</strong> ${item.total}`;
-      }
-      if (item.quantity) {
-        responseDiv.innerHTML += `
-          <p><strong>Quantity:</strong> ${item.quantity}`;
-      }
-      if (item.upc) {
-        responseDiv.innerHTML += `
-          <p><strong>UPC:</strong> ${item.upc} 
-          <button class="btn-copy" onclick="copyToClipboard('${item.upc}')">📋</button></p>`;
-      }
-      responseDiv.innerHTML += `</div>`;
-      responseDiv.innerHTML += `<hr style="border: 0.2px solid #102E50; margin: 10px 0;">`;
-    });
-  }
-
-  if (data.subtotal || data.tax || data.total) {
-    responseDiv.innerHTML += '<div class="total-amount">';
-    if (data.subtotal) {
+    if (data.vendor.logo) {
       responseDiv.innerHTML += `
-        <p><strong>Subtotal:</strong> ${data.subtotal} 
-        <button class="btn-copy" onclick="copyToClipboard('${data.subtotal}')">📋</button></p>`;
+        <div class="invoice-details">
+          <img src="${data.vendor.logo}" alt="Vendor Logo" style="max-width: 100%; height: auto; border: 1px solid #ccc; border-radius: 4px;" />
+        </div>`;
     }
-    if (data.tax) {
+    if (data.category) {
       responseDiv.innerHTML += `
-        <p><strong>Tax:</strong> ${data.tax} 
-        <button class="btn-copy" onclick="copyToClipboard('${data.tax}')">📋</button></p>`;
+        <div class="invoice-details">
+          <p><strong>Predicted Category:</strong> ${data.category}</p>
+        </div>`;
     }
+    if (data.date)
+      responseDiv.innerHTML += `<p><strong>Date:</strong> ${data.date}</p>`;
     if (data.total) {
       responseDiv.innerHTML += `
-        <p><strong>Total:</strong> ${data.total} 
-        <button class="btn-copy" onclick="copyToClipboard('${data.total}')">📋</button></p>`;
+        <div class="invoice-details">
+      <p><strong>Subtotal:</strong> ${data.subtotal} ${
+        data.currency_code || ""
+      }</p>
+      <p><strong>Tax:</strong> ${data.tax || "N/A"} ${
+        data.currency_code || ""
+      }</p>
+      <p><strong>Total:</strong> ${data.total || "N/A"} ${
+        data.currency_code || ""
+      }</p>
+        </div>`;
     }
-    responseDiv.innerHTML += "</div>";
-  } else {
-    responseDiv.innerHTML += "<h2>Raw OCR Output</h2>";
-    responseDiv.innerHTML += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+  }
+
+  // Group items, anything not 'food' goes to "Uncategorized"
+  itemsByCategory = {};
+  if (data.line_items && Array.isArray(data.line_items)) {
+    data.line_items.forEach((item, idx) => {
+      let category =
+        item.type && item.type.toLowerCase() === "food"
+          ? "Food"
+          : "Uncategorized";
+      item._index = idx; // track original index for updates
+      if (!itemsByCategory[category]) itemsByCategory[category] = [];
+      itemsByCategory[category].push(item);
+    });
+
+    // Summary container
+    let summaryDiv = document.createElement("div");
+    summaryDiv.id = "summaryDiv";
+    responseDiv.appendChild(summaryDiv);
+    updateSummary();
+
+    // Detailed items container
+    const detailsDiv = document.createElement("div");
+    detailsDiv.id = "detailsDiv";
+    responseDiv.appendChild(detailsDiv);
+
+    for (const category in itemsByCategory) {
+      createCategoryContainer(category, itemsByCategory[category], detailsDiv);
+    }
   }
 }
 
-// Function to copy text to clipboard
-function copyToClipboard(text) {
-  navigator.clipboard
-    .writeText(text)
-    .then(() => {
-      console.log("Copied to clipboard: " + text);
-    })
-    .catch((err) => {
-      console.error("Failed to copy text: ", err);
-    });
+function createCategoryContainer(category, items, parentDiv) {
+  let categoryDiv = document.createElement("div");
+  categoryDiv.className = "category";
+  categoryDiv.dataset.category = category;
+
+  let categoryTitle = document.createElement("h4");
+  categoryTitle.textContent = category;
+
+  let categoryItemsDiv = document.createElement("div");
+  categoryItemsDiv.className = "category-items";
+
+  categoryDiv.appendChild(categoryTitle);
+  categoryDiv.appendChild(categoryItemsDiv);
+
+  parentDiv.appendChild(categoryDiv);
+
+  items.forEach((item) => {
+    const itemDiv = document.createElement("div");
+    itemDiv.className = "line-item";
+    itemDiv.dataset.index = item._index;
+
+    // Use a temporary div to parse and append the inner HTML
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = `
+      ${item.description ? `<p>${item.description}</p>` : ""}
+      ${item.type ? `<p><strong>Type:</strong> ${item.type}</p>` : ""}
+      ${item.total ? `<p><strong>Total:  ${item.total}</strong></p>` : ""}
+    `;
+
+    while (tempDiv.firstChild) {
+      itemDiv.appendChild(tempDiv.firstChild);
+    }
+
+    if (category === "Uncategorized") {
+      const select = document.createElement("select");
+      CATEGORIES.forEach((cat) => {
+        const option = document.createElement("option");
+        option.value = cat;
+        option.textContent = cat;
+        select.appendChild(option);
+      });
+
+      const confirmBtn = document.createElement("button");
+      confirmBtn.textContent = "Update";
+
+      confirmBtn.addEventListener("click", () => {
+        const selectedValue = select.value;
+        if (selectedValue === "Select category") return;
+
+        let newCategory = selectedValue;
+
+        itemsByCategory["Uncategorized"] = itemsByCategory[
+          "Uncategorized"
+        ].filter((i) => i !== item);
+
+        if (!itemsByCategory[newCategory]) {
+          itemsByCategory[newCategory] = [];
+          createCategoryContainer(
+            newCategory,
+            [],
+            document.getElementById("detailsDiv")
+          );
+        }
+        itemsByCategory[newCategory].push(item);
+
+        const newCategoryDiv = document.querySelector(
+          `.category[data-category="${newCategory}"] .category-items`
+        );
+        newCategoryDiv.appendChild(itemDiv);
+
+        select.remove();
+        confirmBtn.remove();
+        updateSummary();
+      });
+
+      itemDiv.appendChild(select);
+      itemDiv.appendChild(confirmBtn);
+    }
+
+    // Append the entire itemDiv, including the button, to the category items container
+    categoryItemsDiv.appendChild(itemDiv);
+  });
+}
+
+function updateSummary() {
+  const summaryDiv = document.getElementById("summaryDiv");
+  summaryDiv.innerHTML = "<h3>Summary by Category</h3><ul>";
+  for (const category in itemsByCategory) {
+    const total = itemsByCategory[category]
+      .reduce((sum, i) => sum + (parseFloat(i.total) || 0), 0)
+      .toFixed(2);
+    summaryDiv.innerHTML += `<li><strong>${category}:</strong> ${total}</li>`;
+    console.log(`Category: ${category}, Total: ${total}`);
+  }
+  summaryDiv.innerHTML += "</ul>";
 }
