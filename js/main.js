@@ -46,7 +46,8 @@ form.addEventListener("submit", async (event) => {
 
 const CATEGORIES = [
   "Select category",
-  "Food",
+  "Groceries",
+  "Bebe",
   "Entertainment",
   "Gifts",
   "Going out",
@@ -60,6 +61,12 @@ const CATEGORIES = [
 ];
 
 let itemsByCategory = {};
+
+const tempSummary = {
+  vendor: "",
+  date: "",
+  categories: [],
+};
 
 function displayInvoiceData(data) {
   const responseDiv = document.getElementById("response");
@@ -99,6 +106,10 @@ function displayInvoiceData(data) {
       }</p>
         </div>`;
     }
+    // Fill vendor and date in temp summary
+    tempSummary.vendor = data.vendor.name;
+    // Use formatted date, not time
+    tempSummary.date = new Date(data.date).toLocaleDateString();
   }
 
   // Group items, anything not 'food' goes to "Uncategorized"
@@ -107,7 +118,7 @@ function displayInvoiceData(data) {
     data.line_items.forEach((item, idx) => {
       let category =
         item.type && item.type.toLowerCase() === "food"
-          ? "Food"
+          ? "Groceries"
           : "Uncategorized";
       item._index = idx; // track original index for updates
       if (!itemsByCategory[category]) itemsByCategory[category] = [];
@@ -224,6 +235,22 @@ function updateSummary() {
       .toFixed(2);
     summaryDiv.innerHTML += `<li><strong>${category}:</strong> ${total}</li>`;
     console.log(`Category: ${category}, Total: ${total}`);
+    // Delete uncategorized if empty
+    if (
+      category === "Uncategorized" &&
+      itemsByCategory[category].length === 0
+    ) {
+      // remove li from summary
+      summaryDiv.innerHTML = summaryDiv.innerHTML.replace(
+        `<li><strong>${category}:</strong> ${total}</li>`,
+        ""
+      );
+      delete itemsByCategory[category];
+      const catDiv = document.querySelector(
+        `.category[data-category="${category}"]`
+      );
+      if (catDiv) catDiv.remove();
+    }
   }
   summaryDiv.innerHTML += "</ul>";
 }
