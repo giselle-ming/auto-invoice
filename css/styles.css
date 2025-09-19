@@ -24,7 +24,7 @@ body {
 }
 
 h1 {
-  color: #102E50;
+  color: #102e50;
   /* Dark Blue */
   margin-bottom: 20px;
 }
@@ -48,7 +48,7 @@ h1 {
 }
 
 button {
-  background-color: #F5C45E;
+  background-color: #f5c45e;
   /* Yellow */
   color: white;
   padding: 10px 15px;
@@ -60,7 +60,7 @@ button {
 }
 
 .btn-copy {
-  background-color: #F9F9F9;
+  background-color: #f9f9f9;
   border-radius: 50px;
   cursor: pointer;
   font-size: 16px;
@@ -81,7 +81,7 @@ button {
 }
 
 button:hover {
-  background-color: #E78B48;
+  background-color: #e78b48;
   /* Orange */
 }
 
@@ -95,7 +95,7 @@ button:hover {
 }
 
 #response h2 {
-  color: #102E50;
+  color: #102e50;
   /* Dark Blue */
   margin-top: 0;
   margin-bottom: 10px;
@@ -112,7 +112,7 @@ button:hover {
 }
 
 .line-items-title {
-  color: #E78B48;
+  color: #e78b48;
   /* Orange */
   font-weight: bold;
   margin-top: 15px;
@@ -121,10 +121,35 @@ button:hover {
 
 .line-item {
   margin-bottom: 8px;
-  padding: 8px;
+  padding: 12px;
   border: 1px solid #eee;
-  border-radius: 4px;
+  border-radius: 6px;
   background-color: #fff;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.line-item p {
+  margin: 0;
+  flex: 1 1 100%;
+}
+
+.line-item select,
+.line-item button {
+  flex: 1 1 100%;
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+}
+
+.line-item button {
+  background-color: #4caf50;
+  color: #fff;
+  border: none;
+  cursor: pointer;
 }
 
 .total-amount {
@@ -148,4 +173,24 @@ pre {
   color: #dc3545;
   /* Red */
   font-weight: bold;
+}
+
+li {
+  list-style-type: none;
+  padding: 8px;
+  font-size: larger;
+}
+
+@media (min-width: 45em) {
+  /* ~720px */
+  .line-item p {
+    flex: 1 1 calc(50% - 8px);
+  }
+}
+
+@media (min-width: 60em) {
+  /* ~960px */
+  .line-item p {
+    flex: 1 1 calc(25% - 8px);
+  }
 }
