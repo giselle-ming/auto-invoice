@@ -8,20 +8,30 @@
   </head>
 
   <body>
-    <div class="container">
-      <h1>Invoice Reader</h1>
-      <form id="uploadForm">
-        <input
-          type="file"
-          id="fileInput"
-          name="file"
-          accept="image/*, application/pdf"
-          required
-        />
-        <button type="submit">Process File</button>
-      </form>
-      <div id="response"></div>
-    </div>
+    <section id="select-option">
+      <div class="container">
+        <h1>Invoice Reader</h1>
+        <button class="btn-home" id="select-file">Upload Receipt</button>
+        <button class="btn-home" id="enter-amount">Enter Receipt</button>
+      </div>
+    </section>
+
+    <section id="submit-receipt" style="display: none">
+      <div class="container">
+        <h1>Invoice Reader</h1>
+        <form id="uploadForm">
+          <input
+            type="file"
+            id="fileInput"
+            name="file"
+            accept="image/*, application/pdf"
+            required
+          />
+          <button type="submit">Process File</button>
+        </form>
+        <div id="response"></div>
+      </div>
+    </section>
     <script src="js/main.js"></script>
   </body>
 </html>

@@ -1,5 +1,14 @@
 const form = document.getElementById("uploadForm");
 const responseDiv = document.getElementById("response");
+const submitSection = document.getElementById("submit-receipt");
+const homeSection = document.getElementById("select-option");
+
+const selectFile = document.getElementById("select-file");
+selectFile.addEventListener("click", () => {
+  submitSection.style.display = "block";
+  homeSection.style.display = "none";
+  responseDiv.style.display = "none";
+});
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -47,7 +56,7 @@ form.addEventListener("submit", async (event) => {
 const CATEGORIES = [
   "Select category",
   "Groceries",
-  "Bebe",
+  "Bebe (Cat)",
   "Entertainment",
   "Gifts",
   "Going out",

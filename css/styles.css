@@ -13,6 +13,10 @@ body {
   display: none;
 }
 
+.btn-home {
+  margin-top: 22px;
+}
+
 .container {
   background-color: #fff;
   padding: 30px;
