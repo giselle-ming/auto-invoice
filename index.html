@@ -29,9 +29,45 @@
           />
           <button type="submit">Process File</button>
         </form>
+        <a class="back" id="back-to-options" href="index.html">&larr; Back</a>
         <div id="response"></div>
       </div>
     </section>
+
+    <section id="enter-amount-section" style="display: none">
+      <div class="container">
+        <h1>Enter Receipt</h1>
+        <form id="amountForm" class="amount-form">
+          <input type="date" id="dateInput" name="date" required />
+          <input
+            type="text"
+            id="vendorInput"
+            name="vendor"
+            placeholder="Vendor Name"
+            required
+          />
+          <input
+            type="number"
+            id="amountInput"
+            name="amount"
+            placeholder="Enter amount"
+            required
+          />
+          <select id="categoryInput" name="category" required>
+            <option value="" disabled selected>Select expense category</option>
+          </select>
+          <input
+            type="text"
+            id="notesInput"
+            name="notes"
+            placeholder="Notes (optional)"
+          />
+          <button type="submit">Submit Amount</button>
+        </form>
+        <a class="back" id="back-to-options" href="index.html">&larr; Back</a>
+      </div>
+    </section>
+
     <script src="js/main.js"></script>
   </body>
 </html>

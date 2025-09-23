@@ -2,11 +2,30 @@ const form = document.getElementById("uploadForm");
 const responseDiv = document.getElementById("response");
 const submitSection = document.getElementById("submit-receipt");
 const homeSection = document.getElementById("select-option");
-
+const backBtn = document.getElementById("back-to-options");
+const enterAmountBtn = document.getElementById("enter-amount");
 const selectFile = document.getElementById("select-file");
+const enterAmountSection = document.getElementById("enter-amount-section");
+const selectCategory = document.getElementById("categoryInput");
+
+enterAmountBtn.addEventListener("click", () => {
+  enterAmountSection.style.display = "block";
+  homeSection.style.display = "none";
+  responseDiv.style.display = "none";
+  submitSection.style.display = "none";
+});
+
 selectFile.addEventListener("click", () => {
   submitSection.style.display = "block";
+  enterAmountSection.style.display = "none";
   homeSection.style.display = "none";
+  responseDiv.style.display = "none";
+});
+
+backBtn.addEventListener("click", () => {
+  submitSection.style.display = "none";
+  enterAmountSection.style.display = "none";
+  homeSection.style.display = "block";
   responseDiv.style.display = "none";
 });
 
@@ -76,6 +95,10 @@ const tempSummary = {
   date: "",
   categories: [],
 };
+
+selectCategory.innerHTML = CATEGORIES.map((cat) => {
+  return `<option value="${cat}">${cat}</option>`;
+}).join("");
 
 function displayInvoiceData(data) {
   const responseDiv = document.getElementById("response");
