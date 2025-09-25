@@ -106,33 +106,46 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    const date = document.getElementById("dateInput").value;
+    const dateInput = document.getElementById("dateInput").value;
+    // Format date as MM-DD-YYYY for sending/display
+    const formattedDate = dateInput
+      ? new Date(dateInput).toLocaleDateString("en-US", {
+          month: "2-digit",
+          day: "2-digit",
+          year: "numeric",
+        })
+      : "";
     const vendor = document.getElementById("vendorInput").value;
     const amount = document.getElementById("amountInput").value;
     const category = document.getElementById("categoryInput").value;
     const notes = document.getElementById("notesInput").value;
 
-    const payload = { date, vendor, amount, category, notes };
+    const payload = { date: formattedDate, vendor, amount, category, notes };
 
     try {
-      // Check if the user is authenticated
-      const authRes = await fetch("/api/auth");
-      if (!authRes.ok) {
-        const errBody = await authRes.json().catch(() => ({}));
-        console.error("Auth failed:", errBody);
-        alert(
-          "Server failed to authenticate to Google Sheets. Try again later."
-        );
+      // check auth status on the server
+      const statusRes = await fetch(
+        `https://ocr-server-z1sy.onrender.com/api/auth-status`
+      );
+      const status = await statusRes.json();
+
+      if (!status.authenticated) {
+        // navigate the browser to the server auth route so Google consent screen appears
+        window.location = `https://ocr-server-z1sy.onrender.com/api/auth`;
         return;
       }
 
-      const response = await fetch("/api/append", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      // if authenticated, append the data
+      const response = await fetch(
+        `https://ocr-server-z1sy.onrender.com/api/append`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
 
-      const result = await response.json().catch(() => ({}));
+      const result = await response.json();
       if (response.ok) {
         alert("Receipt submitted successfully!");
         form.reset();
@@ -313,6 +326,7 @@ function updateSummary() {
       .reduce((sum, i) => sum + (parseFloat(i.total) || 0), 0)
       .toFixed(2);
     summaryDiv.innerHTML += `<li><strong>${category}:</strong> ${total}</li>`;
+    // For debugging
     console.log(`Category: ${category}, Total: ${total}`);
     // Delete uncategorized if empty
     if (
