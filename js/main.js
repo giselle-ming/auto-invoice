@@ -100,6 +100,53 @@ selectCategory.innerHTML = CATEGORIES.map((cat) => {
   return `<option value="${cat}">${cat}</option>`;
 }).join("");
 
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("amountForm");
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const date = document.getElementById("dateInput").value;
+    const vendor = document.getElementById("vendorInput").value;
+    const amount = document.getElementById("amountInput").value;
+    const category = document.getElementById("categoryInput").value;
+    const notes = document.getElementById("notesInput").value;
+
+    const payload = { date, vendor, amount, category, notes };
+
+    try {
+      // Check if the user is authenticated
+      const authRes = await fetch("/api/auth");
+      if (!authRes.ok) {
+        const errBody = await authRes.json().catch(() => ({}));
+        console.error("Auth failed:", errBody);
+        alert(
+          "Server failed to authenticate to Google Sheets. Try again later."
+        );
+        return;
+      }
+
+      const response = await fetch("/api/append", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json().catch(() => ({}));
+      if (response.ok) {
+        alert("Receipt submitted successfully!");
+        form.reset();
+      } else {
+        console.error("Server error:", result);
+        alert("Failed to submit receipt. Check console for details.");
+      }
+    } catch (err) {
+      console.error("Request failed:", err);
+      alert("Could not connect to server.");
+    }
+  });
+});
+
 function displayInvoiceData(data) {
   const responseDiv = document.getElementById("response");
   responseDiv.innerHTML = "<h2>Processed Invoice/Receipt Data</h2>";
