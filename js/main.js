@@ -8,8 +8,8 @@ const selectFile = document.getElementById("select-file");
 const enterAmountSection = document.getElementById("enter-amount-section");
 const selectCategory = document.getElementById("categoryInput");
 
-enterAmountBtn.addEventListener("click", () => {
-    try {
+enterAmountBtn.addEventListener("click", async () => {
+  try {
     const statusRes = await fetch(
       `https://ocr-server-z1sy.onrender.com/api/auth-status`
     );
