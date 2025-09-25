@@ -9,10 +9,25 @@ const enterAmountSection = document.getElementById("enter-amount-section");
 const selectCategory = document.getElementById("categoryInput");
 
 enterAmountBtn.addEventListener("click", () => {
-  enterAmountSection.style.display = "block";
-  homeSection.style.display = "none";
-  responseDiv.style.display = "none";
-  submitSection.style.display = "none";
+    try {
+    const statusRes = await fetch(
+      `https://ocr-server-z1sy.onrender.com/api/auth-status`
+    );
+    const status = await statusRes.json();
+    if (!status.authenticated) {
+      // redirect to server auth route to show Google consent
+      window.location = `https://ocr-server-z1sy.onrender.com/api/auth`;
+      return;
+    }
+    // authenticated =>show manual entry UI
+    enterAmountSection.style.display = "block";
+    homeSection.style.display = "none";
+    responseDiv.style.display = "none";
+    submitSection.style.display = "none";
+  } catch (err) {
+    console.error("Auth check failed:", err);
+    alert("Could not verify authentication. Try again.");
+  }
 });
 
 selectFile.addEventListener("click", () => {
@@ -123,19 +138,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const payload = { date: formattedDate, vendor, amount, category, notes };
 
     try {
-      // check auth status on the server
-      const statusRes = await fetch(
-        `https://ocr-server-z1sy.onrender.com/api/auth-status`
-      );
-      const status = await statusRes.json();
-
-      if (!status.authenticated) {
-        // navigate the browser to the server auth route so Google consent screen appears
-        window.location = `https://ocr-server-z1sy.onrender.com/api/auth`;
-        return;
-      }
-
-      // if authenticated, append the data
       const response = await fetch(
         `https://ocr-server-z1sy.onrender.com/api/append`,
         {
