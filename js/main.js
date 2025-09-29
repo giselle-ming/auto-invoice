@@ -225,6 +225,36 @@ function displayInvoiceData(data) {
     responseDiv.appendChild(summaryDiv);
     updateSummary();
 
+    const submitToSpreadsheetBtn = document.createElement("button");
+    submitToSpreadsheetBtn.textContent = "Submit summary lines to Google";
+    submitToSpreadsheetBtn.id = "google-submit";
+
+    submitToSpreadsheetBtn.addEventListener("click", async () => {
+      const payloads = [];
+
+      for (const category in itemsByCategory) {
+        const total = itemsByCategory[category].reduce(
+          (s, it) => s + (parseFloat(it.total) || 0),
+          0
+        );
+        if (total <= 0) continue;
+
+        const payload = {
+          date: tempSummary.date,
+          vendor: tempSummary.vendor,
+          amount: total.toFixed(2),
+          category,
+          notes: "",
+        };
+
+        payloads.push(payload);
+      }
+
+      console.log("Final payloads sent to server:", payloads);
+    });
+
+    summaryDiv.appendChild(submitToSpreadsheetBtn);
+
     // Detailed items container
     const detailsDiv = document.createElement("div");
     detailsDiv.id = "detailsDiv";
@@ -322,30 +352,37 @@ function createCategoryContainer(category, items, parentDiv) {
 
 function updateSummary() {
   const summaryDiv = document.getElementById("summaryDiv");
+
+  // Save reference to existing submit button (if already created)
+  let submitBtn = document.getElementById("google-submit");
+
   summaryDiv.innerHTML = "<h3>Summary by Category</h3><ul>";
+
   for (const category in itemsByCategory) {
     const total = itemsByCategory[category]
       .reduce((sum, i) => sum + (parseFloat(i.total) || 0), 0)
       .toFixed(2);
-    summaryDiv.innerHTML += `<li><strong>${category}:</strong> ${total}</li>`;
-    // For debugging
-    console.log(`Category: ${category}, Total: ${total}`);
-    // Delete uncategorized if empty
+
+    // Skip empty uncategorized
     if (
       category === "Uncategorized" &&
       itemsByCategory[category].length === 0
     ) {
-      // remove li from summary
-      summaryDiv.innerHTML = summaryDiv.innerHTML.replace(
-        `<li><strong>${category}:</strong> ${total}</li>`,
-        ""
-      );
       delete itemsByCategory[category];
       const catDiv = document.querySelector(
         `.category[data-category="${category}"]`
       );
       if (catDiv) catDiv.remove();
+      continue;
     }
+
+    summaryDiv.innerHTML += `<li><strong>${category}:</strong> ${total}</li>`;
+    console.log(`Category: ${category}, Total: ${total}`);
   }
+
   summaryDiv.innerHTML += "</ul>";
+
+  if (submitBtn) {
+    summaryDiv.appendChild(submitBtn);
+  }
 }
