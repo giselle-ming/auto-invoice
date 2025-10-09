@@ -30,7 +30,26 @@ enterAmountBtn.addEventListener("click", async () => {
   }
 });
 
-selectFile.addEventListener("click", () => {
+selectFile.addEventListener("click", async () => {
+  try {
+    const statusRes = await fetch(
+      `https://ocr-server-z1sy.onrender.com/api/auth-status`
+    );
+    const status = await statusRes.json();
+    if (!status.authenticated) {
+      // redirect to server auth route to show Google consent
+      window.location = `https://ocr-server-z1sy.onrender.com/api/auth`;
+      return;
+    }
+    // authenticated =>show manual entry UI
+    enterAmountSection.style.display = "block";
+    homeSection.style.display = "none";
+    responseDiv.style.display = "none";
+    submitSection.style.display = "none";
+  } catch (err) {
+    console.error("Auth check failed:", err);
+    alert("Could not verify authentication. Try again.");
+  }
   submitSection.style.display = "block";
   enterAmountSection.style.display = "none";
   homeSection.style.display = "none";
@@ -226,7 +245,7 @@ function displayInvoiceData(data) {
     updateSummary();
 
     const submitToSpreadsheetBtn = document.createElement("button");
-    submitToSpreadsheetBtn.textContent = "Submit summary lines to Google";
+    submitToSpreadsheetBtn.textContent = "Submit to Google";
     submitToSpreadsheetBtn.id = "google-submit";
 
     submitToSpreadsheetBtn.addEventListener("click", async () => {
@@ -251,6 +270,22 @@ function displayInvoiceData(data) {
       }
 
       console.log("Final payloads sent to server:", payloads);
+
+      for (const payload of payloads) {
+        try {
+          const response = await fetch(
+            `https://ocr-server-z1sy.onrender.com/api/append`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            }
+          );
+        } catch (err) {
+          console.error("Request failed:", err);
+          alert("Could not connect to server.");
+        }
+      }
     });
 
     summaryDiv.appendChild(submitToSpreadsheetBtn);
