@@ -248,43 +248,83 @@ function displayInvoiceData(data) {
     submitToSpreadsheetBtn.textContent = "Submit to Google";
     submitToSpreadsheetBtn.id = "google-submit";
 
-    submitToSpreadsheetBtn.addEventListener("click", async () => {
-      const payloads = [];
-
-      for (const category in itemsByCategory) {
-        const total = itemsByCategory[category].reduce(
-          (s, it) => s + (parseFloat(it.total) || 0),
-          0
+    async function appendPayload(payload) {
+      try {
+        const res = await fetch(
+          `https://ocr-server-z1sy.onrender.com/api/append`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          }
         );
-        if (total <= 0) continue;
+        const body = await res.json().catch(() => ({}));
+        return { ok: res.ok, status: res.status, body };
+      } catch (err) {
+        return { ok: false, error: err };
+      }
+    }
 
-        const payload = {
-          date: tempSummary.date,
-          vendor: tempSummary.vendor,
-          amount: total.toFixed(2),
-          category,
-          notes: "",
-        };
+    submitToSpreadsheetBtn.addEventListener("click", async () => {
+      submitToSpreadsheetBtn.disabled = true;
+      const originalText = submitToSpreadsheetBtn.textContent;
+      submitToSpreadsheetBtn.textContent = "Submitting...";
 
-        payloads.push(payload);
+      // build non-zero payloads
+      const payloads = Object.entries(itemsByCategory)
+        .map(([category, items]) => {
+          const total = items.reduce(
+            (s, it) => s + (parseFloat(it.total) || 0),
+            0
+          );
+          if (total <= 0) return null;
+          return {
+            date: tempSummary.date,
+            vendor: tempSummary.vendor,
+            amount: total.toFixed(2),
+            category,
+            notes: "",
+          };
+        })
+        .filter(Boolean);
+
+      if (payloads.length === 0) {
+        alert("No non-zero categories to submit.");
+        submitToSpreadsheetBtn.disabled = false;
+        submitToSpreadsheetBtn.textContent = originalText;
+        return;
       }
 
-      console.log("Final payloads sent to server:", payloads);
+      // send in parallel and gather results
+      const results = await Promise.allSettled(
+        payloads.map((p) => appendPayload(p))
+      );
 
-      for (const payload of payloads) {
-        try {
-          const response = await fetch(
-            `https://ocr-server-z1sy.onrender.com/api/append`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
-            }
-          );
-        } catch (err) {
-          console.error("Request failed:", err);
-          alert("Could not connect to server.");
+      let successCount = 0;
+      const failures = [];
+
+      results.forEach((r, idx) => {
+        if (r.status === "fulfilled" && r.value && r.value.ok) {
+          successCount++;
+        } else {
+          failures.push({
+            payload: payloads[idx],
+            error: r.reason || r.value || "unknown",
+          });
         }
+      });
+
+      submitToSpreadsheetBtn.disabled = false;
+      submitToSpreadsheetBtn.textContent =
+        successCount === payloads.length ? "Submitted" : originalText;
+
+      if (failures.length === 0) {
+        alert(`All ${successCount} categories submitted successfully.`);
+      } else {
+        console.error("Some submissions failed:", failures);
+        alert(
+          `${successCount} succeeded, ${failures.length} failed. See console for details.`
+        );
       }
     });
 
