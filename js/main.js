@@ -341,6 +341,14 @@ function displayInvoiceData(data) {
   }
 }
 
+/**
+ * Creates a category container element that contains a title and a list of items.
+ * For "Uncategorized" items, a select and confirm button are appended to the item div.
+ * When the confirm button is clicked, the item is moved to the selected category.
+ * @param {string} category - The name of the category.
+ * @param {array} items - An array of items to display in the category.
+ * @param {HTMLElement} parentDiv - The parent element to append the category container to.
+ */
 function createCategoryContainer(category, items, parentDiv) {
   let categoryDiv = document.createElement("div");
   categoryDiv.className = "category";
@@ -425,6 +433,12 @@ function createCategoryContainer(category, items, parentDiv) {
   });
 }
 
+/**
+ * Updates the summary section of the page with the total amount spent by category.
+ * If an item is categorized as "Uncategorized" and there are no items in that category,
+ * the category is removed from the summary.
+ * If the submit button to Google Sheets already exists, it is appended to the summary section.
+ */
 function updateSummary() {
   const summaryDiv = document.getElementById("summaryDiv");
 
