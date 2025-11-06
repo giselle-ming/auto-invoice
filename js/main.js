@@ -181,6 +181,19 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+/**
+ * Displays the processed invoice/receipt data in the page.
+ * @param {Object} data - The processed invoice/receipt data.
+ * @property {Object} data.vendor - Vendor information.
+ * @property {string} data.vendor.raw_name - The raw name of the vendor.
+ * @property {string} [data.vendor.logo] - The URL of the vendor's logo.
+ * @property {string} [data.category] - The predicted category of the item.
+ * @property {string} [data.date] - The date of the item.
+ * @property {number} [data.subtotal] - The subtotal of the item.
+ * @property {number} [data.tax] - The tax of the item.
+ * @property {number} [data.total] - The total of the item.
+ * @property {string} [data.currency_code] - The currency code of the item.
+ */ //TODO: improve display formatting, handle missing fields, function too long
 function displayInvoiceData(data) {
   const responseDiv = document.getElementById("response");
   responseDiv.innerHTML = "<h2>Processed Invoice/Receipt Data</h2>";
@@ -248,6 +261,14 @@ function displayInvoiceData(data) {
     submitToSpreadsheetBtn.textContent = "Submit to Google";
     submitToSpreadsheetBtn.id = "google-submit";
 
+    /**
+     * Appends the given payload to the Google Sheets API.
+     * @param {Object} payload - The payload to append to the spreadsheet.
+     * @returns {Promise<Object>} - A promise resolving to an object containing ok, status, and body.
+     *   ok: A boolean indicating whether the request was successful.
+     *   status: The HTTP status code of the response.
+     *   body: The JSON response body, or an empty object if an error occurred.
+     */
     async function appendPayload(payload) {
       try {
         const res = await fetch(
